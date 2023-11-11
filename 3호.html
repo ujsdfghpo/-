@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-teMSIKvSElQxHgvwTZQzBAeqUG-n8lLHMw&usqp=CAU'); /* 이미지의 URL을 여기에 넣으세요. */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .post-form {
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .post-list {
+            list-style: none;
+            padding: 0;
+        }
+        .post {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>게시판</h1>
+    
+    <!-- 게시물 작성 폼 -->
+    <form class="post-form">
+        <h2>게시물 작성</h2>
+        <label for="post-content">내용:</label>
+        <textarea id="post-content" name="post-content" required></textarea>
+        <button type="submit">게시</button>
+    </form>
+    
+    <!-- 게시물 목록 -->
+    <h2>게시물 목록</h2>
+    <ul class="post-list" id="post-list">
+        <!-- 게시물이 JavaScript로 동적으로 추가됩니다. -->
+    </ul>
+
+    <!-- JavaScript 코드 (이전 코드와 동일) -->
+    <script>
+        // 게시물 작성 폼 submit 이벤트 핸들러
+        document.querySelector('.post-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const postContent = document.querySelector('#post-content').value;
+            const postTime = new Date().toLocaleString();
+            
+            if (postContent) {
+                createPost(postContent, postTime);
+                document.querySelector('#post-content').value = '';
+                // 게시물을 로컬 스토리지에 저장
+                savePostToLocalStorage(postContent, postTime);
+            }
+        });
+
+        // 게시물 생성 함수
+        function createPost(content, time) {
+            const postList = document.querySelector('#post-list');
+            const post = document.createElement('li');
+            post.className = 'post';
+            post.innerHTML = `
+                <p>${content}</p>
+                <small>작성 시간: ${time}</small>
+                <button class="delete-button">삭제</button>
+            `;
+            postList.appendChild(post);
+            
+            // 삭제 버튼 이벤트 리스너
+            const deleteButton = post.querySelector('.delete-button');
+            deleteButton.addEventListener('click', function() {
+                post.remove();
+                // 게시물을 로컬 스토리지에서 제거
+                removePostFromLocalStorage(content, time);
+            });
+        }
+
+        // 게시물을 로컬 스토리지에 저장
+        function savePostToLocalStorage(content, time) {
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            posts.push({ content, time });
+            localStorage.setItem('posts', JSON.stringify(posts));
+        }
+
+        // 게시물을 로컬 스토리지에서 제거
+        function removePostFromLocalStorage(content, time) {
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            const updatedPosts = posts.filter(post => !(post.content === content && post.time === time));
+            localStorage.setItem('posts', JSON.stringify(updatedPosts));
+        }
+
+        // 로컬 스토리지에서 저장된 게시물 불러오기
+        function loadPostsFromLocalStorage() {
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            posts.forEach(post => createPost(post.content, post.time));
+        }
+
+        // 페이지 로드 시 로컬 스토리지에서 저장된 게시물을 불러옴
+        window.addEventListener('load', loadPostsFromLocalStorage);
+    </script>
+</body>
+</html>
